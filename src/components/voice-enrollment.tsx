@@ -18,7 +18,7 @@ export function VoiceEnrollment({ onEnrolled, onSkip }: VoiceEnrollmentProps) {
     setPhase("recording");
     setErrorMsg("");
     try {
-      const profile = await enrollVoice(5000);
+      const profile = await enrollVoice(7000);
       setPhase("done");
       onEnrolled(profile);
     } catch (err) {
@@ -42,12 +42,13 @@ export function VoiceEnrollment({ onEnrolled, onSkip }: VoiceEnrollmentProps) {
         <>
           <h3 className="font-heading text-base font-semibold text-on-surface mb-1">Voice Enrollment</h3>
           <p className="text-xs text-outline mb-4 leading-relaxed">
-            To differentiate between doctor and patient voices, please read the following sentence aloud for 5 seconds:
+            To differentiate between doctor and patient voices, please read the following passage aloud for 7 seconds. Speak naturally at your normal pace and volume.
           </p>
           <div className="bg-surface-container-low rounded-md p-3 mb-5 border border-border">
             <p className="text-sm text-on-surface italic leading-relaxed">
               &ldquo;The patient presents with a three-week history of persistent fatigue, unexplained weight loss,
-              and cold intolerance, suggesting possible thyroid dysfunction.&rdquo;
+              and cold intolerance, suggesting possible thyroid dysfunction. On examination, the skin appears dry
+              and there is mild periorbital edema noted bilaterally.&rdquo;
             </p>
           </div>
           
@@ -86,6 +87,7 @@ export function VoiceEnrollment({ onEnrolled, onSkip }: VoiceEnrollmentProps) {
                   style={{ width: `${enrollProgress}%` }}
                 />
               </div>
+              <p className="text-[10px] text-outline mt-2">Keep speaking continuously...</p>
             </div>
           )}
         </>
@@ -101,7 +103,7 @@ export function VoiceEnrollment({ onEnrolled, onSkip }: VoiceEnrollmentProps) {
           </div>
           <h3 className="font-heading text-base font-semibold text-success mb-1">Voice Enrolled</h3>
           <p className="text-xs text-outline">
-            Your voice profile has been saved. The system will now auto-tag transcript lines.
+            Your voice profile has been saved. The system will now auto-tag transcript lines as Doctor or Patient.
           </p>
         </>
       )}

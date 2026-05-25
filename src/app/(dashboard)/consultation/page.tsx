@@ -29,25 +29,24 @@ const MOCK_BLINDSPOT = {
   action: "Order TSH and Free T4 panel. If TSH > 4.5 mIU/L, consider referral to endocrinology.",
 };
 
-/* ───────── Constants ───────── */
-const AUTO_SAVE_INTERVAL_MS = 10_000; // Auto-save every 10 seconds
+const AUTO_SAVE_INTERVAL_MS = 5_000;
 
 export default function ConsultationPage() {
-  /* ─── State ─── */
+
   const [showLogic, setShowLogic] = useState(false);
   const [notes, setNotes] = useState("");
   const [vitals, setVitals] = useState(MOCK_PATIENT.vitals);
 
-  // Voice enrollment
+
   const [voiceProfile, setVoiceProfile] = useState<VoiceProfile | null>(null);
   const [showEnrollment, setShowEnrollment] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  // Consultation persistence
+
   const [consultationId, setConsultationId] = useState<string | null>(null);
   const lastSavedIndexRef = useRef(0);
 
-  /* ─── Speech Recognition ─── */
+
   const {
     isListening,
     isSupported,
@@ -63,7 +62,7 @@ export default function ConsultationPage() {
 
   const transcriptEndRef = useRef<HTMLDivElement>(null);
 
-  /* ─── Load voice profile on mount ─── */
+
   useEffect(() => {
     async function loadProfile() {
       try {
@@ -78,10 +77,10 @@ export default function ConsultationPage() {
           }
         }
       } catch {
-        // Fall through to localStorage
+  
       }
 
-      // Fallback to localStorage if DB fetch fails or is empty
+
       const localProfile = localStorage.getItem("voiceProfile");
       if (localProfile) {
         try {
@@ -97,7 +96,7 @@ export default function ConsultationPage() {
     loadProfile();
   }, []);
 
-  /* ─── Create a consultation record on first listen ─── */
+
   const ensureConsultation = useCallback(async () => {
     if (consultationId) return consultationId;
 
@@ -106,7 +105,7 @@ export default function ConsultationPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          patientId: null, // Will be wired when patient selection is implemented
+          patientId: null,
           vitals,
           soapNotes: notes,
           visitType: "CONSULTATION",
@@ -123,7 +122,7 @@ export default function ConsultationPage() {
     return null;
   }, [consultationId, vitals, notes]);
 
-  /* ─── Auto-save transcript every 10s ─── */
+
   useEffect(() => {
     if (!isListening || !consultationId) return;
 
@@ -149,15 +148,15 @@ export default function ConsultationPage() {
     return () => clearInterval(timer);
   }, [isListening, consultationId, transcript, notes]);
 
-  /* ─── Auto-scroll transcript ─── */
+
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [transcript, interimText]);
 
-  /* ─── Handle toggle listening ─── */
+
   async function handleToggleListening() {
     if (isListening) {
-      // Stop: save remaining transcript
+
       stopListening();
       if (consultationId) {
         const newLines = transcript.slice(lastSavedIndexRef.current);
@@ -170,7 +169,7 @@ export default function ConsultationPage() {
             });
             lastSavedIndexRef.current = transcript.length;
           } catch {
-            // Ignore
+
           }
         }
       }
@@ -180,11 +179,11 @@ export default function ConsultationPage() {
     }
   }
 
-  /* ─── Handle End Session ─── */
+
   async function handleEndSession() {
     stopListening();
     if (consultationId) {
-      // Final save
+
       const newLines = transcript.slice(lastSavedIndexRef.current);
       try {
         await fetch(`/api/consultations/${consultationId}/transcript`, {
@@ -193,9 +192,9 @@ export default function ConsultationPage() {
           body: JSON.stringify({ newLines, soapNotes: notes }),
         });
       } catch {
-        // Ignore
+
       }
-      // Mark consultation as ended
+
       try {
         await fetch(`/api/consultations/${consultationId}`, {
           method: "PATCH",
@@ -203,20 +202,19 @@ export default function ConsultationPage() {
           body: JSON.stringify({ endedAt: new Date().toISOString() }),
         });
       } catch {
-        // Ignore
       }
     }
   }
 
-  /* ─── Handle enrollment ─── */
+
   async function handleEnrolled(profile: VoiceProfile) {
     setVoiceProfile(profile);
     setShowEnrollment(false);
 
-    // Save to localStorage immediately as a fallback
+
     localStorage.setItem("voiceProfile", JSON.stringify(profile));
 
-    // Persist to DB
+
     try {
       await fetch("/api/doctor/voice-profile", {
         method: "POST",
@@ -224,11 +222,11 @@ export default function ConsultationPage() {
         body: JSON.stringify(profile),
       });
     } catch {
-      // Profile is safely in localStorage now
+
     }
   }
 
-  /* ─── Enrollment overlay ─── */
+
   if (!profileLoading && showEnrollment) {
     return (
       <>
@@ -243,7 +241,7 @@ export default function ConsultationPage() {
     );
   }
 
-  /* ─── Main render ─── */
+
   return (
     <>
       <Header
@@ -264,7 +262,7 @@ export default function ConsultationPage() {
 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-[1400px] mx-auto p-5 md:p-6">
-          {/* ─── Patient Header ─── */}
+
           <div className="clinical-card p-4 mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-clinical-blue-light flex items-center justify-center text-sm font-semibold text-clinical-blue shrink-0">
@@ -301,7 +299,7 @@ export default function ConsultationPage() {
             </div>
           </div>
 
-          {/* ─── Speech Error Banner ─── */}
+
           {speechError && (
             <div className="blindspot-card p-3 mb-5 flex items-center gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ba1a1a" strokeWidth="2.5">
@@ -326,9 +324,9 @@ export default function ConsultationPage() {
             </div>
           )}
 
-          {/* ─── Main Grid ─── */}
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            {/* ─── Left Column: Notes + Orders + Vitals ─── */}
+
             <div className="lg:col-span-8 space-y-5">
               <div className="clinical-card p-5">
                 <div className="flex items-center justify-between mb-3">
@@ -408,9 +406,9 @@ export default function ConsultationPage() {
               </div>
             </div>
 
-            {/* ─── Right Column: BlindSpot + Transcript ─── */}
+
             <div className="lg:col-span-4 space-y-5">
-              {/* BlindSpot Insights Panel */}
+
               <div className="clinical-card p-4 border-t-2 border-t-clinical-blue">
                 <div className="flex items-center gap-2 mb-1">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0051d5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -489,7 +487,7 @@ export default function ConsultationPage() {
                 )}
               </div>
 
-              {/* ─── LIVE Transcript Panel ─── */}
+
               <div className="clinical-card p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-heading text-xs font-semibold text-outline uppercase tracking-wider">
@@ -535,14 +533,14 @@ export default function ConsultationPage() {
                       </div>
                     ))}
 
-                    {/* Interim (live-typing) text */}
+
                     {interimText && (
                       <p className="text-xs text-outline italic animate-pulse">
                         {interimText}...
                       </p>
                     )}
 
-                    {/* Listening indicator */}
+
                     {isListening && (
                       <div className="flex items-center gap-1.5 pt-2">
                         <span className="w-1 h-1 rounded-full bg-success animate-pulse" />
@@ -555,7 +553,7 @@ export default function ConsultationPage() {
                   </div>
                 </ScrollArea>
 
-                {/* Voice profile indicator */}
+
                 <div className="mt-3 pt-3 border-t border-border">
                   {voiceProfile ? (
                     <div className="flex items-center gap-2 text-[10px] text-success">
