@@ -176,15 +176,13 @@ export function Sidebar() {
             </Link>
           ))}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <button className="flex flex-col items-center gap-0.5 text-on-surface-variant p-2">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-                <span className="text-[10px] font-medium">More</span>
-              </button>
+            <SheetTrigger className="flex flex-col items-center gap-0.5 text-on-surface-variant p-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+              <span className="text-[10px] font-medium">More</span>
             </SheetTrigger>
             <SheetContent side="left" className="w-[260px] p-0">
               <SidebarContent onNavigate={() => setMobileOpen(false)} />

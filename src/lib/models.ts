@@ -1,5 +1,12 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+export interface IVoiceProfile {
+  avgPitch: number;
+  avgEnergy: number;
+  spectralCentroid: number;
+  enrolledAt: Date;
+}
+
 export interface IDoctor extends Document {
   name: string;
   email: string;
@@ -8,6 +15,7 @@ export interface IDoctor extends Document {
   region: string;
   pin: string;
   contact: string;
+  voiceProfile: IVoiceProfile | null;
   createdAt: Date;
 }
 
@@ -19,6 +27,12 @@ const DoctorSchema = new Schema<IDoctor>({
   region: { type: String, required: true },
   pin: { type: String, required: true },
   contact: { type: String, default: "" },
+  voiceProfile: {
+    avgPitch: { type: Number, default: 0 },
+    avgEnergy: { type: Number, default: 0 },
+    spectralCentroid: { type: Number, default: 0 },
+    enrolledAt: { type: Date, default: null },
+  },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -59,12 +73,19 @@ export interface IVitals {
   temp: string;
 }
 
+export interface ITranscriptLine {
+  speaker: "dr" | "pt";
+  text: string;
+  timestamp: Date;
+  confidence: number;
+}
+
 export interface IConsultation extends Document {
   patientId: mongoose.Types.ObjectId;
   doctorId: mongoose.Types.ObjectId;
   vitals: IVitals;
   soapNotes: string;
-  transcript: string;
+  transcript: ITranscriptLine[];
   orders: string[];
   visitType: string;
   summary: string;
@@ -82,7 +103,12 @@ const ConsultationSchema = new Schema<IConsultation>({
     temp: { type: String, default: "" },
   },
   soapNotes: { type: String, default: "" },
-  transcript: { type: String, default: "" },
+  transcript: [{
+    speaker: { type: String, enum: ["dr", "pt"], required: true },
+    text: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    confidence: { type: Number, default: 1 },
+  }],
   orders: { type: [String], default: [] },
   visitType: { type: String, default: "CONSULTATION" },
   summary: { type: String, default: "" },
