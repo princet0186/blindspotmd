@@ -72,7 +72,7 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-            <div className="lg:col-span-8">
+            <div className="lg:col-span-12">
               <div className="clinical-card overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #e8edeb" }}>
                   <div>
@@ -133,41 +133,9 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-4">
-              <div className="clinical-card p-5">
-                <h3 className="font-heading text-base font-bold text-on-surface mb-1">Integrations</h3>
-                <p className="text-xs text-outline mb-4">Connected services powering your clinical AI.</p>
-                <div className="space-y-3">
-                  {[
-                    { name: "Google Gemini", desc: "Reasoning engine", status: "active" },
-                    { name: "MongoDB Atlas", desc: "Data persistence", status: "active" },
-                    { name: "Arize AI", desc: "Observability", status: "pending" },
-                  ].map((svc) => (
-                    <div key={svc.name} className="flex items-center gap-3 p-2.5 rounded-lg" style={{ border: "1px solid #e8edeb" }}>
-                      <div
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ background: svc.status === "active" ? "#00ed64" : "#c1cdd1" }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-on-surface block">{svc.name}</span>
-                        <span className="text-[11px] text-outline">{svc.desc}</span>
-                      </div>
-                      <span
-                        className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                        style={{
-                          background: svc.status === "active" ? "#e3fcef" : "#f3f7f5",
-                          color: svc.status === "active" ? "#00684a" : "#889397",
-                        }}
-                      >
-                        {svc.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
 
-            <div className="lg:col-span-8">
+
+            <div className="lg:col-span-12">
               <div className="clinical-card overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #e8edeb" }}>
                   <h3 className="font-heading text-base font-bold text-on-surface">Recent Patients</h3>
@@ -216,42 +184,6 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 )}
-              </div>
-            </div>
-
-            <div className="lg:col-span-4">
-              <div className="clinical-card p-5" style={{ borderTop: "2px solid #00684a" }}>
-                <h3 className="font-heading text-base font-bold text-on-surface mb-1">Clinical AI Status</h3>
-                <p className="text-xs text-outline mb-4">Real-time system diagnostics.</p>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs font-semibold text-on-surface">Ambient Capture</span>
-                      <span className="text-[10px] font-semibold" style={{ color: "#00684a" }}>Ready</span>
-                    </div>
-                    <div className="h-1.5 rounded-full" style={{ background: "#e8edeb" }}>
-                      <div className="h-full rounded-full" style={{ width: "100%", background: "#00ed64" }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs font-semibold text-on-surface">Gemini Reasoning</span>
-                      <span className="text-[10px] font-semibold" style={{ color: "#944f01" }}>Stage 6</span>
-                    </div>
-                    <div className="h-1.5 rounded-full" style={{ background: "#e8edeb" }}>
-                      <div className="h-full rounded-full" style={{ width: "60%", background: "linear-gradient(90deg, #00ed64, #00684a)" }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs font-semibold text-on-surface">Arize Observability</span>
-                      <span className="text-[10px] font-semibold" style={{ color: "#889397" }}>Pending</span>
-                    </div>
-                    <div className="h-1.5 rounded-full" style={{ background: "#e8edeb" }}>
-                      <div className="h-full rounded-full" style={{ width: "0%", background: "#c1cdd1" }} />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 
