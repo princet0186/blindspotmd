@@ -30,7 +30,7 @@ export default function RootLayout({
       className={`${publicSans.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <TooltipProvider delayDuration={300}>
+        <TooltipProvider>
           {children}
         </TooltipProvider>
       </body>

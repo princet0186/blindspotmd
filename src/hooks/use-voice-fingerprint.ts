@@ -6,15 +6,17 @@ export interface VoiceProfile {
   avgPitch: number;
   avgEnergy: number;
   spectralCentroid: number;
+  pitchRange: [number, number];
+  energyRange: [number, number];
   enrolledAt: string;
 }
 
-interface VoiceAnalysis {
+interface VoiceFrame {
   pitch: number;
   energy: number;
   spectralCentroid: number;
+  timestamp: number;
 }
-
 
 function detectPitch(buffer: Float32Array, sampleRate: number): number {
   const SIZE = buffer.length;
@@ -75,6 +77,11 @@ function calcEnergy(buffer: Float32Array): number {
   return Math.sqrt(sum / buffer.length);
 }
 
+function percentile(sorted: number[], p: number): number {
+  const idx = Math.floor((p / 100) * (sorted.length - 1));
+  return sorted[idx] || 0;
+}
+
 export function useVoiceFingerprint() {
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [enrollProgress, setEnrollProgress] = useState(0);
@@ -84,8 +91,12 @@ export function useVoiceFingerprint() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number>(0);
+  const continuousSamplerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const captureFrame = useCallback((): VoiceAnalysis | null => {
+  const rollingBufferRef = useRef<VoiceFrame[]>([]);
+  const BUFFER_DURATION_MS = 3000;
+
+  const captureFrame = useCallback((): VoiceFrame | null => {
     const analyser = analyserRef.current;
     const ctx = audioContextRef.current;
     if (!analyser || !ctx) return null;
@@ -100,23 +111,62 @@ export function useVoiceFingerprint() {
     const energy = calcEnergy(timeDomainData);
     const spectralCentroid = calcSpectralCentroid(freqData, ctx.sampleRate, analyser.fftSize);
 
-    return { pitch, energy, spectralCentroid };
+    return { pitch, energy, spectralCentroid, timestamp: Date.now() };
+  }, []);
+
+  const startContinuousSampling = useCallback(() => {
+    if (continuousSamplerRef.current) return;
+
+    continuousSamplerRef.current = setInterval(() => {
+      const frame = captureFrame();
+      if (!frame) return;
+
+      rollingBufferRef.current.push(frame);
+
+      const cutoff = Date.now() - BUFFER_DURATION_MS;
+      rollingBufferRef.current = rollingBufferRef.current.filter((f) => f.timestamp > cutoff);
+    }, 60);
+  }, [captureFrame]);
+
+  const stopContinuousSampling = useCallback(() => {
+    if (continuousSamplerRef.current) {
+      clearInterval(continuousSamplerRef.current);
+      continuousSamplerRef.current = null;
+    }
+  }, []);
+
+  const getRecentSpeechFrames = useCallback((windowMs: number = 1500): VoiceFrame[] => {
+    const cutoff = Date.now() - windowMs;
+    return rollingBufferRef.current.filter(
+      (f) => f.timestamp > cutoff && f.pitch > 50 && f.energy > 0.015
+    );
   }, []);
 
   const startCapture = useCallback(async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
     const ctx = new AudioContext();
     const source = ctx.createMediaStreamSource(stream);
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.75;
     source.connect(analyser);
 
     audioContextRef.current = ctx;
     analyserRef.current = analyser;
     streamRef.current = stream;
-  }, []);
+    rollingBufferRef.current = [];
+
+    startContinuousSampling();
+  }, [startContinuousSampling]);
 
   const stopCapture = useCallback(() => {
+    stopContinuousSampling();
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
     }
@@ -125,10 +175,11 @@ export function useVoiceFingerprint() {
     audioContextRef.current = null;
     analyserRef.current = null;
     streamRef.current = null;
-  }, []);
+    rollingBufferRef.current = [];
+  }, [stopContinuousSampling]);
 
   const enrollVoice = useCallback(
-    async (durationMs: number = 5000): Promise<VoiceProfile> => {
+    async (durationMs: number = 7000): Promise<VoiceProfile> => {
       setIsEnrolling(true);
       setEnrollProgress(0);
 
@@ -152,15 +203,20 @@ export function useVoiceFingerprint() {
             const validEnergies = energySamples.filter((e) => e > 0.01);
             const validCentroids = centroidSamples.filter((c) => c > 0);
 
-            if (validPitches.length < 5) {
-              reject(new Error("Not enough speech detected. Please try again and speak clearly."));
+            if (validPitches.length < 10) {
+              reject(new Error("Not enough speech detected. Please try again and speak continuously."));
               return;
             }
+
+            const sortedPitches = [...validPitches].sort((a, b) => a - b);
+            const sortedEnergies = [...validEnergies].sort((a, b) => a - b);
 
             const profile: VoiceProfile = {
               avgPitch: validPitches.reduce((a, b) => a + b, 0) / validPitches.length,
               avgEnergy: validEnergies.reduce((a, b) => a + b, 0) / validEnergies.length,
               spectralCentroid: validCentroids.reduce((a, b) => a + b, 0) / validCentroids.length,
+              pitchRange: [percentile(sortedPitches, 10), percentile(sortedPitches, 90)],
+              energyRange: [percentile(sortedEnergies, 10), percentile(sortedEnergies, 90)],
               enrolledAt: new Date().toISOString(),
             };
 
@@ -186,22 +242,36 @@ export function useVoiceFingerprint() {
   );
 
   const identifySpeaker = useCallback(
-    (liveFrame: VoiceAnalysis, doctorProfile: VoiceProfile): "dr" | "pt" => {
+    (doctorProfile: VoiceProfile): "dr" | "pt" => {
+      const recentFrames = getRecentSpeechFrames(1200);
 
-      const pitchDiff = Math.abs(liveFrame.pitch - doctorProfile.avgPitch) / (doctorProfile.avgPitch || 1);
-      const centroidDiff = Math.abs(liveFrame.spectralCentroid - doctorProfile.spectralCentroid) / (doctorProfile.spectralCentroid || 1);
+      if (recentFrames.length < 2) return "dr";
 
-      const score = pitchDiff * 0.6 + centroidDiff * 0.4;
+      const avgPitch = recentFrames.reduce((s, f) => s + f.pitch, 0) / recentFrames.length;
+      const avgCentroid = recentFrames.reduce((s, f) => s + f.spectralCentroid, 0) / recentFrames.length;
 
-      return score < 0.25 ? "dr" : "pt";
+      const [pitchLow, pitchHigh] = doctorProfile.pitchRange;
+      const pitchMargin = (pitchHigh - pitchLow) * 0.4;
+
+      const pitchInRange = avgPitch >= (pitchLow - pitchMargin) && avgPitch <= (pitchHigh + pitchMargin);
+
+      const centroidDiff = Math.abs(avgCentroid - doctorProfile.spectralCentroid) /
+        (doctorProfile.spectralCentroid || 1);
+
+      if (pitchInRange && centroidDiff < 0.3) return "dr";
+      if (!pitchInRange) return "pt";
+      if (centroidDiff > 0.35) return "pt";
+
+      return "dr";
     },
-    []
+    [getRecentSpeechFrames]
   );
 
   return {
     enrollVoice,
     identifySpeaker,
     captureFrame,
+    getRecentSpeechFrames,
     startCapture,
     stopCapture,
     isEnrolling,
