@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/lib/auth-context";
 
 const NAV_ITEMS = [
   {
@@ -56,55 +57,33 @@ const NAV_ITEMS = [
   },
 ];
 
-const BOTTOM_ITEMS = [
-  {
-    label: "Emergency",
-    href: "/emergency",
-    color: "text-alert-red",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-        <line x1="12" y1="9" x2="12" y2="13" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
-    ),
-  },
-  {
-    label: "Help",
-    href: "/help",
-    color: "text-outline",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
-    ),
-  },
-];
-
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { doctor, logout } = useAuth();
+
+  const initials = doctor?.name
+    ? doctor.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "DR";
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      <div className="px-5 pt-5 pb-4 border-b border-border">
+    <div className="flex flex-col h-full" style={{ background: "#001e2b" }}>
+      <div className="px-5 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-on-surface flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#00684a" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ed64" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
             </svg>
           </div>
           <div>
-            <h1 className="font-heading text-[15px] font-bold tracking-tight text-on-surface leading-tight">BlindSpotMD</h1>
-            <p className="text-[10px] font-medium text-outline tracking-widest uppercase">Clinical Precision AI</p>
+            <h1 className="font-heading text-[15px] font-bold tracking-tight leading-tight" style={{ color: "#ffffff" }}>BlindSpotMD</h1>
+            <p className="text-[10px] font-medium tracking-widest uppercase" style={{ color: "#00ed64" }}>Clinical Precision AI</p>
           </div>
         </div>
       </div>
 
-      <div className="px-3 pt-3">
+      <div className="px-3 pt-4">
         <Link href="/consultation" onClick={onNavigate}>
-          <Button className="w-full bg-on-surface text-white hover:bg-on-surface/90 rounded-md h-9 text-sm font-medium gap-2">
+          <Button className="w-full rounded-lg h-10 text-sm font-semibold gap-2 transition-all" style={{ background: "#00684a", color: "#ffffff" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
@@ -114,20 +93,22 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </Link>
       </div>
 
-      <ScrollArea className="flex-1 px-3 py-3">
+      <ScrollArea className="flex-1 px-3 py-4">
+        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>Clinical</p>
         <nav className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+            const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-clinical-blue-light text-clinical-blue border-l-[3px] border-clinical-blue -ml-[3px] pl-[15px]"
-                    : "text-on-surface-variant hover:bg-surface-container-low"
-                }`}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all"
+                style={{
+                  background: isActive ? "#023430" : "transparent",
+                  color: isActive ? "#00ed64" : "rgba(255,255,255,0.65)",
+                  borderLeft: isActive ? "3px solid #00ed64" : "3px solid transparent",
+                }}
               >
                 {item.icon}
                 {item.label}
@@ -137,18 +118,30 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </nav>
       </ScrollArea>
 
-      <div className="px-3 pb-4 space-y-0.5 border-t border-border pt-3">
-        {BOTTOM_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${item.color} hover:bg-surface-container-low transition-colors`}
-          >
-            {item.icon}
-            {item.label}
-          </Link>
-        ))}
+      <div className="px-3 pb-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 12 }}>
+        <div className="mx-0 p-3 rounded-lg" style={{ background: "#023430", border: "1px solid rgba(0, 237, 100, 0.12)" }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: "#00684a", color: "#00ed64" }}>
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold truncate" style={{ color: "#ffffff" }}>{doctor?.name || "Doctor"}</p>
+              <p className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{doctor?.region || "General"}</p>
+            </div>
+            <button
+              onClick={logout}
+              className="p-1.5 rounded-md transition-colors"
+              style={{ color: "rgba(255,255,255,0.35)" }}
+              title="Sign out"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -159,24 +152,25 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="hidden md:flex flex-col w-[260px] border-r border-border shrink-0 h-screen sticky top-0">
+      <aside className="hidden md:flex flex-col w-[260px] shrink-0 h-screen sticky top-0">
         <SidebarContent />
       </aside>
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50" style={{ background: "#001e2b", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-center justify-around h-14 px-2">
           {NAV_ITEMS.slice(0, 4).map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center gap-0.5 text-on-surface-variant p-2"
+              className="flex flex-col items-center gap-0.5 p-2"
+              style={{ color: "rgba(255,255,255,0.6)" }}
             >
               {item.icon}
               <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           ))}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger className="flex flex-col items-center gap-0.5 text-on-surface-variant p-2">
+            <SheetTrigger className="flex flex-col items-center gap-0.5 p-2" style={{ color: "rgba(255,255,255,0.6)" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="3" y1="12" x2="21" y2="12" />
                 <line x1="3" y1="6" x2="21" y2="6" />

@@ -302,7 +302,7 @@ export default function ConsultationPage() {
 
           {speechError && (
             <div className="blindspot-card p-3 mb-5 flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ba1a1a" strokeWidth="2.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cf4c35" strokeWidth="2.5">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                 <line x1="12" y1="9" x2="12" y2="13" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -409,9 +409,9 @@ export default function ConsultationPage() {
 
             <div className="lg:col-span-4 space-y-5">
 
-              <div className="clinical-card p-4 border-t-2 border-t-clinical-blue">
+              <div className="clinical-card p-4" style={{ borderTop: "2px solid #00684a" }}>
                 <div className="flex items-center gap-2 mb-1">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0051d5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00684a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
@@ -422,7 +422,7 @@ export default function ConsultationPage() {
                 <div className="blindspot-card p-4 mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ba1a1a" strokeWidth="2.5">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#cf4c35" strokeWidth="2.5">
                         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                         <line x1="12" y1="9" x2="12" y2="13" />
                         <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -446,7 +446,7 @@ export default function ConsultationPage() {
 
                   <button
                     onClick={() => setShowLogic(!showLogic)}
-                    className="w-full flex items-center justify-center gap-2 py-1.5 text-xs font-medium text-on-surface-variant border border-border rounded-sm hover:bg-surface-container-low transition-colors mb-3"
+                    className="w-full flex items-center justify-center gap-2 py-1.5 text-xs font-medium text-on-surface-variant border border-border rounded-md hover:bg-surface-container-low transition-colors mb-3"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
@@ -456,7 +456,7 @@ export default function ConsultationPage() {
                   </button>
 
                   {showLogic && (
-                    <div className="bg-white border border-border rounded-sm p-3 text-xs text-on-surface-variant leading-relaxed mb-3">
+                    <div className="bg-white border border-border rounded-md p-3 text-xs text-on-surface-variant leading-relaxed mb-3">
                       <p className="mb-2">{MOCK_BLINDSPOT.logic}</p>
                       <div className="pt-2 border-t border-border">
                         <span className="font-semibold text-on-surface block mb-1">Recommended Action:</span>
@@ -466,10 +466,10 @@ export default function ConsultationPage() {
                   )}
 
                   <div className="flex gap-2">
-                    <Button className="flex-1 bg-on-surface text-white hover:bg-on-surface/90 h-8 text-xs rounded-sm font-medium">
+                    <Button className="flex-1 h-8 text-xs rounded-md font-semibold" style={{ background: "#00684a", color: "#ffffff" }}>
                       Add to Plan
                     </Button>
-                    <Button variant="outline" className="flex-1 border-outline-variant text-on-surface-variant h-8 text-xs rounded-sm">
+                    <Button variant="outline" className="flex-1 border-outline-variant text-on-surface-variant h-8 text-xs rounded-md">
                       Dismiss
                     </Button>
                   </div>

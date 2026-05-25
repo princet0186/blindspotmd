@@ -85,7 +85,7 @@ export default function PatientsPage() {
                 className="input-clinical pl-9"
               />
             </div>
-            <Button className="bg-on-surface text-white hover:bg-on-surface/90 h-9 text-sm font-medium gap-2 ml-4">
+            <Button className="h-9 text-sm font-semibold gap-2 ml-4" style={{ background: "#00684a", color: "#ffffff" }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Add Patient
             </Button>

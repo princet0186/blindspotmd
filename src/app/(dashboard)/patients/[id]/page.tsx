@@ -16,6 +16,7 @@ interface Diagnostic {
 
 interface Flag {
   _id: string;
+  consultationId: string;
   suggestion: string;
   confidence: number;
   severity: string;
@@ -29,6 +30,7 @@ interface ConsultationRecord {
   _id: string;
   visitType: string;
   summary: string;
+  soapNotes: string;
   startedAt: string;
   vitals: { bp: string; hr: string; spo2: string; temp: string };
 }
@@ -185,7 +187,7 @@ export default function PatientRecordPage() {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" className="h-9 text-xs border-outline-variant">Export Full Record</Button>
-                  <Button className="h-9 text-xs bg-on-surface text-white hover:bg-on-surface/90 gap-1.5">
+                  <Button className="h-9 text-xs gap-1.5" style={{ background: "#00684a", color: "#ffffff" }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Add Note
                   </Button>
@@ -214,10 +216,10 @@ export default function PatientRecordPage() {
                           {months.map((m, i) => (
                             <text key={`${m}-${i}`} x={toX(i)} y={chartHeight - 4} textAnchor="middle" fill="#76777d" fontSize="10">{m}</text>
                           ))}
-                          <polyline points={sysPoints} fill="none" stroke="#0051d5" strokeWidth="2" strokeLinejoin="round" />
+                          <polyline points={sysPoints} fill="none" stroke="#00684a" strokeWidth="2" strokeLinejoin="round" />
                           <polyline points={diaPoints} fill="none" stroke="#c6c6cd" strokeWidth="2" strokeLinejoin="round" />
                           {systolicVals.map((v, i) => (
-                            <circle key={`s-${i}`} cx={toX(i)} cy={toY(v, 60, 180)} r="3" fill="#0051d5" />
+                            <circle key={`s-${i}`} cx={toX(i)} cy={toY(v, 60, 180)} r="3" fill="#00684a" />
                           ))}
                           {diastolicVals.map((v, i) => (
                             <circle key={`d-${i}`} cx={toX(i)} cy={toY(v, 60, 180)} r="3" fill="#c6c6cd" />
